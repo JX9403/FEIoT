@@ -14,7 +14,6 @@ import { Layout, Menu, Dropdown, Space, message, Avatar } from "antd";
 import { Outlet, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import "./LayoutAdmin.scss";
-import { postLogout } from "../../services/apiService";
 
 const { Content, Footer, Sider } = Layout;
 
@@ -33,7 +32,7 @@ const LayoutAdmin = () => {
     {
       label: <Link to="/sensor">Sensor Data</Link>,
       // key: 'user',
-      icon: <UserOutlined />,
+      icon: <DollarCircleOutlined />,
       key: "sensor",
     },
     {
@@ -44,7 +43,7 @@ const LayoutAdmin = () => {
     {
       label: <Link to="/profile">Profile</Link>,
       key: "profile",
-      icon: <DollarCircleOutlined />,
+      icon: <UserOutlined />,
     },
   ];
 

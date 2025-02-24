@@ -21,39 +21,46 @@ import {
 import { render } from "react-dom";
 import moment from "moment";
 import { fakeHistoryData } from "../../../fakeData";
+import { getListHistoryData } from "../../services/apiService";
 
 // https://stackblitz.com/run?file=demo.tsx
 const History = () => {
-  const [listBook, setListBook] = useState([]);
+  const [data, setData] = useState([]);
   const [current, setCurrent] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [total, setTotal] = useState(0);
 
-  const [isLoading, setIsLoading] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
   const [filter, setFilter] = useState("");
-  const [sortQuery, setSortQuery] = useState("sort=-createdAt");
+  const [sortQuery, setSortQuery] = useState("sortOrder=desc");
 
   // useEffect(() => {
   //   fetchBook();
   // }, [current, pageSize, filter, sortQuery]);
 
-  // const fetchBook = async () => {
-  //   setIsLoading(true);
-  //   let query = `?current=${current}&pageSize=${pageSize}`;
-  //   if (filter) {
-  //     query += `${filter}`;
-  //   }
-  //   if (sortQuery) {
-  //     query += `&${sortQuery}`;
-  //   }
-  //   // console.log("query<<", query);
-  //   const res = await getListBook(query);
-  //   if (res && res.data) {
-  //     setListBook(res.data.result);
-  //     setTotal(res.data.meta.total);
-  //   }
-  //   setIsLoading(false);
-  // };
+  const fetchHistoryData = async () => {
+    // setIsLoading(true);
+    let query = `?page=${current}&limit=${pageSize}`;
+    if (filter) {
+      query += `${filter}`;
+    }
+    if (sortQuery) {
+      query += `&${sortQuery}`;
+    }
+    console.log("query<<", query);
+    const res = await getListHistoryData(query);
+    console.log(" res << ", res);
+    if (res && res.data) {
+      setData(res.data);
+      setTotal(res.totalRows);
+    }
+    // setIsLoading(false);
+  };
+
+  // Gọi API mỗi 2 giây
+  useEffect(() => {
+    fetchHistoryData(); // Gọi lần đầu tiên
+  }, [current, pageSize, filter, sortQuery]);
 
   const columns = [
     {
@@ -105,11 +112,9 @@ const History = () => {
       setCurrent(1);
     }
     if (sorter && sorter.field) {
-      const q =
-        sorter.order === "ascend"
-          ? `sort=${sorter.field}`
-          : `sort=-${sorter.field}`;
-      setSortQuery(q);
+      const sortOrder = sorter.order === "ascend" ? "asc" : `desc`;
+      const sortBy = sorter.field; // Trường sắp xếp
+      setSortQuery(`sortBy=${sortBy}&sortOrder=${sortOrder}`);
     }
   };
 
@@ -149,7 +154,7 @@ const History = () => {
             title={renderHeader}
             loading={false}
             columns={columns}
-            dataSource={fakeHistoryData}
+            dataSource={data}
             onChange={onChange}
             rowKey="_id"
             pagination={{

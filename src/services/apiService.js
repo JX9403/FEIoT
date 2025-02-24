@@ -1,63 +1,19 @@
 
+import { act } from "react";
 import axios from "../utils/axios-customize";
 
-export const postRegister = (fullName, email, password, phone) => {
-  return axios.post('/api/v1/user/register', { fullName, email, password, phone });
+
+export const getListSensorData = (param) => {
+  return axios.get(`/v1/api/sensor-data${param}`);
+}
+export const getListHistoryData = (param) => {
+  return axios.get(`/v1/api/activity-history${param}`);
 }
 
-export const postLogin = (username, password) => {
-  return axios.post('/api/v1/auth/login', { username, password });
-}
-
-export const getAccount = () => {
-  return axios.get('/api/v1/auth/account');
-}
-
-export const postLogout = () => {
-  return axios.post('/api/v1/auth/logout');
-}
-
-export const getListUser = (param) => {
-  return axios.get(`/api/v1/user${param}`);
-}
-
-export const postCreateUser = (data) => {
-  return axios.post(`/api/v1/user`, data);
-}
-
-export const putUpdateUser = (data) => {
-  return axios.put(`/api/v1/user`, data);
-}
-
-export const postListUser = (data) => {
-  return axios.post(`/api/v1/user/bulk-create`, data);
-}
-
-export const deleteUser = (id) => {
-  return axios.delete(`/api/v1/user/${id}`);
-}
-
-export const getListBook = (param) => {
-  return axios.get(`/api/v1/book${param}`);
-}
-
-export const postCreateBook = (thumbnail,
-  slider,
-  mainText,
-  author,
-  price,
-  sold,
-  quantity,
-  category) => {
-  return axios.post(`/api/v1/book`, {
-    thumbnail,
-    slider,
-    mainText,
-    author,
-    price,
-    sold,
-    quantity,
-    category
+export const postHistory = (device, action) => {
+  return axios.post(`/v1/api/activity-history`, {
+    device: device,
+    action: action
   });
 }
 

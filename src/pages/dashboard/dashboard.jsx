@@ -1,22 +1,64 @@
-import { Card, Col, Row, Statistic, Switch } from "antd";
+import { Card, Col, Row, Switch } from "antd";
 import { useEffect, useState } from "react";
+import axios from "axios";
 import ChartSensor from "./chartSensor";
-// import CountUp from "react-countup";
-// import { callFetchDashboard } from "../../services/apiService";
+import { getListSensorData, postHistory } from "../../services/apiService";
 
 const Dashboard = () => {
-  // useEffect(() => {
-  //   const initDashboard = async () => {
-  //     const res = await callFetchDashboard();
-  //     if (res && res.data) setDataDashboard(res.data);
-  //   };
-  //   initDashboard();
-  // }, []);
+  const [sensorData, setSensorData] = useState([]);
+  const [deviceState, setDeviceState] = useState({
+    fan: false,
+    light: false,
+    airConditioner: false,
+  });
 
-  // const formatter = (value) => <CountUp end={value} separator="," />;
+  // Lấy trạng thái từ localStorage khi component mount
+  useEffect(() => {
+    const savedState = localStorage.getItem("deviceState");
+    if (savedState) {
+      setDeviceState(JSON.parse(savedState));
+    }
+  }, []);
+  // Hàm gọi API
+  const fetchSensorData = async () => {
+    let query = ``;
+
+    const res = await getListSensorData(query);
+    console.log(" res << ", res);
+    if (res && res.data) {
+      setSensorData(res.data);
+    }
+    // setIsLoading(false);
+  };
+  // Gọi API khi component mount
+  useEffect(() => {
+    fetchSensorData();
+
+    // Cập nhật dữ liệu mỗi 2 giây
+    const interval = setInterval(fetchSensorData, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Hàm gửi yêu cầu bật/tắt thiết bị
+  const handleDeviceChange = async (device, checked) => {
+    const action = checked ? "on" : "off";
+    const res = await postHistory(device, action);
+    const newState = { ...deviceState, [device]: checked };
+    setDeviceState(newState);
+    localStorage.setItem("deviceState", JSON.stringify(newState));
+
+    console.log(res);
+  };
+
+  // Lấy dữ liệu mới nhất
+  const latestData = sensorData[sensorData.length - 1] || {
+    temperature: 30,
+    humidity: 60,
+    light: 500,
+  };
 
   const onChange = (checked) => {
-    console.log(`switch to ${checked}`);
+    console.log(`Switch to ${checked}`);
   };
 
   return (
@@ -39,13 +81,8 @@ const Dashboard = () => {
                   style={{ fontSize: 30, color: "#db3241" }}
                 ></i>
               </div>
-              <div>
-                <div
-                  className="card-value"
-                  style={{ fontSize: 30, color: "#db3241", fontWeight: 500 }}
-                >
-                  30 &deg;C
-                </div>
+              <div style={{ fontSize: 30, color: "#db3241", fontWeight: 500 }}>
+                {latestData.temperature} &deg;C
               </div>
             </div>
           </Card>
@@ -63,17 +100,12 @@ const Dashboard = () => {
             >
               <div style={{ marginRight: 40 }}>
                 <i
-                  class="fa-solid fa-droplet"
+                  className="fa-solid fa-droplet"
                   style={{ fontSize: 30, color: "#1ed998" }}
                 ></i>
               </div>
-              <div>
-                <div
-                  className="card-value"
-                  style={{ fontSize: 30, color: "#1ed998", fontWeight: 500 }}
-                >
-                  30 &deg;C
-                </div>
+              <div style={{ fontSize: 30, color: "#1ed998", fontWeight: 500 }}>
+                {latestData.humidity} %
               </div>
             </div>
           </Card>
@@ -91,17 +123,12 @@ const Dashboard = () => {
             >
               <div style={{ marginRight: 40 }}>
                 <i
-                  class="fa-regular fa-sun"
+                  className="fa-regular fa-sun"
                   style={{ fontSize: 30, color: "#e8b81a" }}
                 ></i>
               </div>
-              <div>
-                <div
-                  className="card-value"
-                  style={{ fontSize: 30, color: "#e8b81a", fontWeight: 500 }}
-                >
-                  30 &deg;C
-                </div>
+              <div style={{ fontSize: 30, color: "#e8b81a", fontWeight: 500 }}>
+                {latestData.light} Lux
               </div>
             </div>
           </Card>
@@ -111,7 +138,7 @@ const Dashboard = () => {
       <Row gutter={[40, 40]}>
         <Col span={16}>
           <Card style={{ height: "100%" }} bordered={false}>
-            <ChartSensor />
+            <ChartSensor sensorData={sensorData} />
           </Card>
         </Col>
         <Col span={8}>
@@ -123,19 +150,15 @@ const Dashboard = () => {
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    paddingLeft: 40,
-                    paddingRight: 40,
+                    padding: "0 40px",
                     minHeight: 80,
                   }}
                 >
-                  <div>
-                    <i
-                      className="fa-solid fa-fan"
-                      style={{ fontSize: 40, color: "" }}
-                    ></i>
-                  </div>
-                  {/* <div style={{ fontSize: 20, fontWeight: 500 }}>Fan</div> */}
-                  <Switch defaultChecked onChange={onChange} />
+                  <i className="fa-solid fa-fan" style={{ fontSize: 40 }}></i>
+                  <Switch
+                    checked={deviceState["fan"]}
+                    onChange={(checked) => handleDeviceChange("fan", checked)}
+                  />
                 </div>
               </Card>
             </Col>
@@ -146,19 +169,18 @@ const Dashboard = () => {
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    paddingLeft: 40,
-                    paddingRight: 40,
+                    padding: "0 40px",
                     minHeight: 80,
                   }}
                 >
-                  <div>
-                    <i
-                      className="fa-solid fa-lightbulb"
-                      style={{ fontSize: 40, color: "" }}
-                    ></i>
-                  </div>
-                  {/* <div style={{ fontSize: 20, fontWeight: 500 }}>Fan</div> */}
-                  <Switch defaultChecked onChange={onChange} />
+                  <i
+                    className="fa-solid fa-lightbulb"
+                    style={{ fontSize: 40 }}
+                  ></i>
+                  <Switch
+                    checked={deviceState["light"]}
+                    onChange={(checked) => handleDeviceChange("light", checked)}
+                  />
                 </div>
               </Card>
             </Col>
@@ -169,19 +191,20 @@ const Dashboard = () => {
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    paddingLeft: 40,
-                    paddingRight: 40,
+                    padding: "0 40px",
                     minHeight: 80,
                   }}
                 >
-                  <div>
-                    <i
-                      class="fa-brands fa-pagelines"
-                      style={{ fontSize: 40, color: "" }}
-                    ></i>
-                  </div>
-                  {/* <div style={{ fontSize: 20, fontWeight: 500 }}>Fan</div> */}
-                  <Switch defaultChecked onChange={onChange} />
+                  <i
+                    className="fa-brands fa-pagelines"
+                    style={{ fontSize: 40 }}
+                  ></i>
+                  <Switch
+                    checked={deviceState["air-conditioner"]}
+                    onChange={(checked) =>
+                      handleDeviceChange("air-conditioner", checked)
+                    }
+                  />
                 </div>
               </Card>
             </Col>

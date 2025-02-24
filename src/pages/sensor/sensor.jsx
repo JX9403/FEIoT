@@ -21,39 +21,48 @@ import {
 import { render } from "react-dom";
 import moment from "moment";
 import { fakeSensorData } from "../../../fakeData";
+import { getListSensorData } from "../../services/apiService";
 
 // https://stackblitz.com/run?file=demo.tsx
 const Sensor = () => {
-  const [listBook, setListBook] = useState([]);
+  const [data, setData] = useState([]);
   const [current, setCurrent] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [total, setTotal] = useState(0);
 
-  const [isLoading, setIsLoading] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
   const [filter, setFilter] = useState("");
-  const [sortQuery, setSortQuery] = useState("sort=-createdAt");
+  const [sortQuery, setSortQuery] = useState("sortOrder=desc");
 
   // useEffect(() => {
   //   fetchBook();
   // }, [current, pageSize, filter, sortQuery]);
 
-  // const fetchBook = async () => {
-  //   setIsLoading(true);
-  //   let query = `?current=${current}&pageSize=${pageSize}`;
-  //   if (filter) {
-  //     query += `${filter}`;
-  //   }
-  //   if (sortQuery) {
-  //     query += `&${sortQuery}`;
-  //   }
-  //   // console.log("query<<", query);
-  //   const res = await getListBook(query);
-  //   if (res && res.data) {
-  //     setListBook(res.data.result);
-  //     setTotal(res.data.meta.total);
-  //   }
-  //   setIsLoading(false);
-  // };
+  const fetchSensorData = async () => {
+    // setIsLoading(true);
+    let query = `?page=${current}&limit=${pageSize}`;
+    if (filter) {
+      query += `${filter}`;
+    }
+    if (sortQuery) {
+      query += `&${sortQuery}`;
+    }
+    console.log("query<<", query);
+    const res = await getListSensorData(query);
+    console.log(" res << ", res);
+    if (res && res.data) {
+      setData(res.data);
+      setTotal(res.totalRows);
+    }
+    // setIsLoading(false);
+  };
+
+  // Gọi API mỗi 2 giây
+  useEffect(() => {
+    fetchSensorData(); // Gọi lần đầu tiên
+    const interval = setInterval(fetchSensorData, 2000);
+    return () => clearInterval(interval); // Xóa interval khi unmount
+  }, [current, pageSize, filter, sortQuery]);
 
   const columns = [
     {
@@ -95,7 +104,10 @@ const Sensor = () => {
       sorter: true,
       render: (text, record, index) => {
         return (
-          <span>{moment(record.createdAt).format("DD-MM-YYYY hh:mm:ss")}</span>
+          <span>
+            {moment(record.createdAt).format("DD-MM-YYYY hh:mm:ss")} /
+            {record.createdAt}
+          </span>
         );
       },
     },
@@ -110,11 +122,9 @@ const Sensor = () => {
       setCurrent(1);
     }
     if (sorter && sorter.field) {
-      const q =
-        sorter.order === "ascend"
-          ? `sort=${sorter.field}`
-          : `sort=-${sorter.field}`;
-      setSortQuery(q);
+      const sortOrder = sorter.order === "ascend" ? "asc" : `desc`;
+      const sortBy = sorter.field; // Trường sắp xếp
+      setSortQuery(`sortBy=${sortBy}&sortOrder=${sortOrder}`);
     }
   };
 
@@ -154,14 +164,14 @@ const Sensor = () => {
             title={renderHeader}
             loading={false}
             columns={columns}
-            dataSource={fakeSensorData}
+            dataSource={data}
             onChange={onChange}
             rowKey="_id"
             pagination={{
-              current: 1,
-              pageSize: 5,
+              current: current,
+              pageSize: pageSize,
               showSizeChanger: true,
-              total: 20,
+              total: total,
             }}
           />
         </Col>

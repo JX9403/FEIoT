@@ -3,7 +3,6 @@ import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
   LineElement,
   PointElement,
   Title,
@@ -14,11 +13,9 @@ import {
 import { Chart } from "react-chartjs-2";
 import zoomPlugin from "chartjs-plugin-zoom";
 
-// Đăng ký các thành phần của Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  BarElement,
   LineElement,
   PointElement,
   Title,
@@ -28,111 +25,102 @@ ChartJS.register(
   zoomPlugin
 );
 
-const labels = [
-  "10:00",
-  "10:02",
-  "10:04",
-  "10:06",
-  "10:08",
-  "10:10",
-  "10:12",
-  "10:14",
-  "10:16",
-  "10:18",
-  "10:20",
-  "10:22",
-];
+const ChartSensor = ({ sensorData }) => {
+  const labels = sensorData
+    .map((item) => new Date(item.createdAt).toLocaleTimeString())
+    .reverse(); // Đảo ngược mảng để dữ liệu mới nhất nằm bên phải
+  const data = {
+    labels,
+    datasets: [
+      {
+        label: "Nhiệt độ (°C)",
+        data: sensorData.map((item) => item.temperature).reverse(),
+        borderColor: "#db3241",
+        tension: 0.5,
+        pointRadius: 3,
+        yAxisID: "y1",
+        fill: false, // Không tô nền
+      },
+      {
+        label: "Độ ẩm (%)",
+        data: sensorData.map((item) => item.humidity).reverse(),
+        borderColor: "#1ed998",
+        tension: 0.5,
+        pointRadius: 3,
+        yAxisID: "y1",
+        fill: false, // Không tô nền
+      },
+      {
+        label: "Ánh sáng (Lux)",
+        data: sensorData.map((item) => item.light).reverse(),
+        borderColor: "rgb(232, 184, 26)",
+        tension: 0.5,
+        pointRadius: 3,
+        yAxisID: "y2",
+        fill: false, // Không tô nền
+      },
+    ],
+  };
 
-const data = {
-  labels: labels,
-  datasets: [
-    {
-      label: "Nhiệt độ (°C)",
-      data: [25, 26, 27, 26.5, 28, 29, 27, 26, 25.5, 27, 28, 29.5],
-      borderColor: "#db3241",
-      backgroundColor: "#db3241",
-      fill: false,
-      tension: 0.4,
-      yAxisID: "y1",
-      type: "line",
-    },
-    {
-      label: "Độ ẩm (%)",
-      data: [60, 65, 62, 70, 75, 78, 74, 69, 68, 72, 76, 80],
-      borderColor: "#1ed998",
-      backgroundColor: "#1ed998",
-      fill: false,
-      tension: 0.4,
-      yAxisID: "y1",
-      type: "line",
-    },
-    {
-      label: "Ánh sáng (Lux)",
-      data: [500, 700, 600, 900, 1000, 950, 850, 800, 750, 900, 950, 1050],
-      backgroundColor: "rgb(232, 184, 26)",
-      yAxisID: "y2",
-      type: "bar",
-      barThickness: 15, // Giảm chiều rộng cột
-    },
-  ],
-};
-
-const options = {
-  responsive: true,
-  scales: {
-    y1: {
-      type: "linear",
-      position: "left",
-      beginAtZero: true,
-      title: {
-        display: true,
-        text: "Nhiệt độ (°C) & Độ ẩm (%)",
+  const options = {
+    responsive: true,
+    scales: {
+      y1: {
+        type: "linear",
+        position: "left",
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: "Nhiệt độ (°C) & Độ ẩm (%)",
+        },
+        grid: {
+          display: false,
+        },
       },
-      grid: {
-        display: false, // Ẩn vạch kẻ ngang của trục y1
+      y2: {
+        type: "linear",
+        position: "right",
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: "Ánh sáng (Lux)",
+        },
+        grid: {
+          display: false,
+          drawOnChartArea: false,
+        },
+      },
+      x: {
+        grid: {
+          display: false,
+        },
       },
     },
-    y2: {
-      type: "linear",
-      position: "right",
-      beginAtZero: true,
-      title: {
-        display: true,
-        text: "Ánh sáng (Lux)",
-      },
-      grid: {
-        display: false, // Ẩn vạch kẻ ngang của trục y2
-        drawOnChartArea: false,
-      },
-    },
-    x: {
-      grid: {
-        display: false, // Ẩn vạch kẻ dọc trên trục x
-      },
-    },
-  },
-  plugins: {
-    zoom: {
-      pan: {
-        enabled: true,
-        mode: "x",
-        modifierKey: "shift",
-      },
+    plugins: {
       zoom: {
-        wheel: {
+        pan: {
           enabled: true,
+          mode: "x",
+          modifierKey: "shift",
         },
-        pinch: {
-          enabled: true,
+        zoom: {
+          wheel: {
+            enabled: true,
+          },
+          pinch: {
+            enabled: true,
+          },
+          mode: "x",
         },
-        mode: "x",
       },
     },
-  },
-};
+    animation: {
+      duration: 1000, // Thời gian hiển thị mượt hơn
+      easing: "easeInOutQuad", // Hiệu ứng mượt mà
+    },
+  };
 
-const ChartSensor = () => {
-  return <Chart type="bar" data={data} options={options} />;
+  return <Chart type="line" data={data} options={options} />;
 };
 
 export default ChartSensor;
