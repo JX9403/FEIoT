@@ -12,6 +12,12 @@ const Dashboard = () => {
     airConditioner: false,
   });
 
+  const [loadingState, setLoadingState] = useState({
+    fan: false,
+    light: false,
+    "air-conditioner": false,
+  });
+
   // Lấy trạng thái từ localStorage khi component mount
   useEffect(() => {
     const savedState = localStorage.getItem("deviceState");
@@ -25,8 +31,8 @@ const Dashboard = () => {
 
     const res = await getListSensorData(query);
     console.log(" res << ", res);
-    if (res && res.data) {
-      setSensorData(res.data);
+    if (res && res.content) {
+      setSensorData(res.content);
     }
     // setIsLoading(false);
   };
@@ -34,22 +40,29 @@ const Dashboard = () => {
   useEffect(() => {
     fetchSensorData();
 
-    // Cập nhật dữ liệu mỗi 2 giây
+    // // Cập nhật dữ liệu mỗi 2 giây
     const interval = setInterval(fetchSensorData, 2000);
     return () => clearInterval(interval);
   }, []);
 
-  // Hàm gửi yêu cầu bật/tắt thiết bị
-  const handleDeviceChange = async (device, checked) => {
-    const action = checked ? "on" : "off";
-    const res = await postHistory(device, action);
-    const newState = { ...deviceState, [device]: checked };
-    setDeviceState(newState);
-    localStorage.setItem("deviceState", JSON.stringify(newState));
+  // Hàm xử lý khi bật/tắt
+  const handleDeviceChange = (device, checked) => {
+    // Bật loading
+    setLoadingState((prev) => ({ ...prev, [device]: true }));
 
-    console.log(res);
+    // Gửi MQTT/nghiệp vụ khác
+    postHistory(device, checked ? "on" : "off");
+
+    // Sau 2 giây mới set trạng thái checked
+    setTimeout(() => {
+      const newState = { ...deviceState, [device]: checked };
+      setDeviceState(newState);
+      localStorage.setItem("deviceState", JSON.stringify(newState));
+
+      // Tắt loading
+      setLoadingState((prev) => ({ ...prev, [device]: false }));
+    }, 2000);
   };
-
   // Lấy dữ liệu mới nhất
   const latestData = sensorData[sensorData.length - 1] || {
     temperature: 30,
@@ -155,8 +168,10 @@ const Dashboard = () => {
                   }}
                 >
                   <i className="fa-solid fa-fan" style={{ fontSize: 40 }}></i>
+
                   <Switch
                     checked={deviceState["fan"]}
+                    loading={loadingState["fan"]}
                     onChange={(checked) => handleDeviceChange("fan", checked)}
                   />
                 </div>
@@ -179,6 +194,7 @@ const Dashboard = () => {
                   ></i>
                   <Switch
                     checked={deviceState["light"]}
+                    loading={loadingState["light"]}
                     onChange={(checked) => handleDeviceChange("light", checked)}
                   />
                 </div>
@@ -201,6 +217,7 @@ const Dashboard = () => {
                   ></i>
                   <Switch
                     checked={deviceState["air-conditioner"]}
+                    loading={loadingState["air-conditioner"]}
                     onChange={(checked) =>
                       handleDeviceChange("air-conditioner", checked)
                     }

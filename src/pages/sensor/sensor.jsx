@@ -1,46 +1,22 @@
 import React, { useEffect, useState } from "react";
-import {
-  Table,
-  Row,
-  Col,
-  Popconfirm,
-  Button,
-  message,
-  notification,
-} from "antd";
+import { Table, Row, Col, Button } from "antd";
 import InputSearch from "./InputSearch";
-import {
-  CloudUploadOutlined,
-  DeleteTwoTone,
-  EditOutlined,
-  ExportOutlined,
-  PlusOutlined,
-  ReloadOutlined,
-} from "@ant-design/icons";
+import { ReloadOutlined } from "@ant-design/icons";
 
-import { render } from "react-dom";
 import moment from "moment";
-import { fakeSensorData } from "../../../fakeData";
+// import { fakeSensorData } from "../../../fakeData";
 import { getListSensorData } from "../../services/apiService";
 
-// https://stackblitz.com/run?file=demo.tsx
 const Sensor = () => {
   const [data, setData] = useState([]);
   const [current, setCurrent] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [total, setTotal] = useState(0);
-
-  // const [isLoading, setIsLoading] = useState(false);
   const [filter, setFilter] = useState("");
   const [sortQuery, setSortQuery] = useState("sortOrder=desc");
 
-  // useEffect(() => {
-  //   fetchBook();
-  // }, [current, pageSize, filter, sortQuery]);
-
   const fetchSensorData = async () => {
-    // setIsLoading(true);
-    let query = `?page=${current}&limit=${pageSize}`;
+    let query = `?page=${current - 1}&size=${pageSize}`;
     if (filter) {
       query += `${filter}`;
     }
@@ -50,11 +26,10 @@ const Sensor = () => {
     console.log("query<<", query);
     const res = await getListSensorData(query);
     console.log(" res << ", res);
-    if (res && res.data) {
-      setData(res.data);
-      setTotal(res.totalRows);
+    if (res && res.content) {
+      setData(res.content);
+      setTotal(res.totalElements);
     }
-    // setIsLoading(false);
   };
 
   // Gọi API mỗi 2 giây
@@ -67,21 +42,8 @@ const Sensor = () => {
   const columns = [
     {
       title: "Id",
-      dataIndex: "_id",
-      render: (text, record, index) => {
-        return (
-          <a
-            href="#"
-            // onClick={() => {
-            //   // console.log(record);
-            //   setDataViewDetail(record);
-            //   setOpenViewDetail(true);
-            // }}
-          >
-            {record._id}
-          </a>
-        );
-      },
+      dataIndex: "id",
+      sorter: true,
     },
     {
       title: "Temperature",
@@ -102,14 +64,14 @@ const Sensor = () => {
       title: "Time",
       dataIndex: "createdAt",
       sorter: true,
-      render: (text, record, index) => {
-        return (
-          <span>
-            {moment(record.createdAt).format("DD-MM-YYYY hh:mm:ss")} /
-            {record.createdAt}
-          </span>
-        );
-      },
+      // render: (text, record, index) => {
+      //   return (
+      //     <span>
+      //       {moment(record.createdAt).format("DD-MM-YYYY hh:mm:ss")} /
+      //       {record.createdAt}
+      //     </span>
+      //   );
+      // },
     },
   ];
 
@@ -128,7 +90,6 @@ const Sensor = () => {
     }
   };
 
-  // change button color: https://ant.design/docs/react/customize-theme#customize-design-token
   const renderHeader = () => {
     return (
       <div style={{ display: "flex", justifyContent: "space-between" }}>

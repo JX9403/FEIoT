@@ -16,8 +16,9 @@ const InputSearch = (props) => {
     // console.log(values);
     let query = "";
     //build query
-    if (values.mainText) {
-      query += `&mainText=/${values.mainText}/i`;
+
+    if (values.createdAt) {
+      query += `&filterType=createdAt&filterValue=${values.createdAt}`;
     }
     // console.log("check query", query);
 
@@ -36,8 +37,8 @@ const InputSearch = (props) => {
     >
       <Row gutter={24}>
         <Col span={8}>
-          <Form.Item name={`valueData`} label={`Filter Time`}>
-            <DatePicker style={{ width: 300 }} format="YYYY-MM-DD HH:mm:ss" />
+          <Form.Item name={`createdAt`} label={`Filter Time`}>
+            <Input style={{ width: 300 }} />
           </Form.Item>
         </Col>
 

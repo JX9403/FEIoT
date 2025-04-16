@@ -12,19 +12,6 @@ const InputSearch = (props) => {
     padding: 24,
   };
 
-  function convertToISO(dateString) {
-    // Tách ngày, tháng, năm và thời gian
-    const [day, month, year, time] = dateString.split(/[-\s]/);
-    const [hours, minutes, seconds] = time.split(":");
-
-    // Tạo đối tượng Date (Mặc định JavaScript dùng múi giờ UTC)
-    const date = new Date(
-      Date.UTC(year, month - 1, day, hours, minutes, seconds)
-    );
-
-    // Chuyển sang định dạng ISO 8601
-    return date.toISOString();
-  }
   const onFinish = (values) => {
     // console.log(values);
     let query = "";
@@ -57,6 +44,7 @@ const InputSearch = (props) => {
             <Input />
           </Form.Item>
         </Col>
+
         <Col span={8}>
           <Form.Item name={`filterType`} label={`Filter Type`}>
             <Select defaultValue="all">
@@ -68,6 +56,7 @@ const InputSearch = (props) => {
             </Select>
           </Form.Item>
         </Col>
+
         <Col span={4} style={{ textAlign: "right" }}>
           <Button type="primary" htmlType="submit">
             Search

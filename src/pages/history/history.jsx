@@ -1,46 +1,23 @@
 import React, { useEffect, useState } from "react";
-import {
-  Table,
-  Row,
-  Col,
-  Popconfirm,
-  Button,
-  message,
-  notification,
-} from "antd";
+import { Table, Row, Col, Button } from "antd";
 import InputSearch from "./InputSearch";
-import {
-  CloudUploadOutlined,
-  DeleteTwoTone,
-  EditOutlined,
-  ExportOutlined,
-  PlusOutlined,
-  ReloadOutlined,
-} from "@ant-design/icons";
+import { ReloadOutlined } from "@ant-design/icons";
 
-import { render } from "react-dom";
 import moment from "moment";
-import { fakeHistoryData } from "../../../fakeData";
+// import { fakeHistoryData } from "../../../fakeData";
 import { getListHistoryData } from "../../services/apiService";
 
-// https://stackblitz.com/run?file=demo.tsx
 const History = () => {
   const [data, setData] = useState([]);
   const [current, setCurrent] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [total, setTotal] = useState(0);
 
-  // const [isLoading, setIsLoading] = useState(false);
   const [filter, setFilter] = useState("");
   const [sortQuery, setSortQuery] = useState("sortOrder=desc");
 
-  // useEffect(() => {
-  //   fetchBook();
-  // }, [current, pageSize, filter, sortQuery]);
-
   const fetchHistoryData = async () => {
-    // setIsLoading(true);
-    let query = `?page=${current}&limit=${pageSize}`;
+    let query = `?page=${current - 1}&size=${pageSize}`;
     if (filter) {
       query += `${filter}`;
     }
@@ -50,40 +27,27 @@ const History = () => {
     console.log("query<<", query);
     const res = await getListHistoryData(query);
     console.log(" res << ", res);
-    if (res && res.data) {
-      setData(res.data);
-      setTotal(res.totalRows);
+    if (res && res.content) {
+      setData(res.content);
+      setTotal(res.totalElements);
     }
-    // setIsLoading(false);
   };
 
   // Gọi API mỗi 2 giây
   useEffect(() => {
     fetchHistoryData(); // Gọi lần đầu tiên
+    console.log("Page:", current, "PageSize:", pageSize);
   }, [current, pageSize, filter, sortQuery]);
 
   const columns = [
     {
       title: "Id",
-      dataIndex: "_id",
-      render: (text, record, index) => {
-        return (
-          <a
-            href="#"
-            // onClick={() => {
-            //   // console.log(record);
-            //   setDataViewDetail(record);
-            //   setOpenViewDetail(true);
-            // }}
-          >
-            {record._id}
-          </a>
-        );
-      },
+      dataIndex: "id",
+      sorter: true,
     },
     {
       title: "Device",
-      dataIndex: "device",
+      dataIndex: "name",
       sorter: true,
     },
     {
@@ -158,10 +122,10 @@ const History = () => {
             onChange={onChange}
             rowKey="_id"
             pagination={{
-              current: 1,
-              pageSize: 5,
+              current: current,
+              pageSize: pageSize,
               showSizeChanger: true,
-              total: 20,
+              total: total,
             }}
           />
         </Col>
